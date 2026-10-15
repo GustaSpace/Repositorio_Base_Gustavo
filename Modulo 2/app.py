@@ -1,33 +1,35 @@
-from flask import Flask, render_template, request 
-from werkzeug.security import generate_password_hash, check_password_hash
-from banco import cadastrar_usuario,validar_login
+from flask import Flask, render_template, request
+from datetime import datetime
+import json
+
+with open("dados.json", "r", encoding="utf-8") as arquio:
+    dados = json.load(arquio)
+
 app = Flask(__name__)
 
-
-@app.route("/", methods=['POST', 'GET'])
+@app.route("/", methods=['POST','GET'])
 def index():
-        if request.method == 'POST':
-            nome = request.form['username']
-            if validar_login(nome, request.form['password']):
-                return 'Acesso permitido! Seja bem vindo!'
-            else:
-                return render_template('login.html',erro='Usuário ou Senha incorretos!')
-                
-
-        
-        return render_template('login.html')
-@app.route('/cadastrar', methods=['POST', 'GET'])
-def cadastrar():
-    if request.method == 'POST':
-        nome = request.form['username']
+    if request.method =="POST":
+        nome = request.form['name']
         email = request.form['email']
-        senha = generate_password_hash(request.form['password'])
+        mensagem = request.form['message']
 
-        cadastrar_usuario(nome, email, senha)
-   
-        return f'CADASTRO CONCLUIDO! Seja bem vindo {nome}! {email} - {senha}'
+        dados_nensagem = {
+            'nome' : nome,
+            'email' : email,
+            'mensagem' : mensagem,
+            'data' : f'{datetime.today()}'
 
-    return render_template('cadastrar.html')
+        }
+        dados.append(dados_nensagem)
+        with open ('dados.json', 'w', encoding='utf-8') as f:
+            json.dump(dados, f, indent=4, ensure_ascii=False)
+
+
+
+        print(f"Nome: {nome} | Email: {email} | Mensagem: {mensagem}" )
+        
+    return render_template('index.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
